@@ -2,16 +2,47 @@
 
 import { useState } from "react";
 
+const API_BASE = "https://libros-api-typescript.onrender.com";
+
+type Endpoint = {
+  method: string;
+  badgeClass: string;
+  path: string;
+  desc: string;
+};
+
+const ENDPOINTS: Endpoint[] = [
+  {
+    method: "GET",
+    badgeClass: "bg-forest/10 text-forest",
+    path: "/libros",
+    desc: "Devuelve el catálogo completo de libros registrados.",
+  },
+  {
+    method: "POST",
+    badgeClass: "bg-navy/10 text-navy",
+    path: "/libros",
+    desc: "Registra un libro nuevo en el catálogo.",
+  },
+  {
+    method: "DEL",
+    badgeClass: "bg-brass/15 text-brass",
+    path: "/libros/:id",
+    desc: "Elimina un libro existente por su identificador.",
+  },
+];
+
+type LibrosResponse = Record<string, unknown> | unknown[] | null;
+
 export default function Home() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<LibrosResponse>(null);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const fetchLibros = async () => {
     setLoading(true);
     try {
-      const res = await fetch(
-        "https://libros-api-typescript.onrender.com/libros",
-      );
+      const res = await fetch(`${API_BASE}/libros`);
       const json = await res.json();
       setData(json);
     } catch (error) {
@@ -21,108 +52,149 @@ export default function Home() {
     }
   };
 
+  const copyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(API_BASE);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard not available — ignore */
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-12 max-w-4xl mx-auto font-sans">
-      {/* Hero / Header */}
-      <header className="mb-12 text-center">
-        <h1 className="text-4xl font-extrabold mb-3 text-emerald-400">
-          📚 Libros API
-        </h1>
-        <p className="text-slate-400 mb-6">
-          API REST ligera y pública construida con Node.js, Express y
-          TypeScript.
-        </p>
+    <div className="min-h-screen bg-paper text-ink font-serif leading-relaxed relative">
+      <div className="hidden md:block fixed top-0 left-[max(0px,calc(50%-460px))] w-[3px] h-full bg-gradient-to-b from-brass via-brass-soft to-transparent opacity-55" />
+      <div className="max-w-[760px] mx-auto px-7 pb-10">
+        <header className="pt-16 pb-12 border-b border-ink/15">
+          <div className="font-mono text-[13px] text-brass mb-4">
+            API REST · Node.js / Express / TypeScript
+          </div>
 
-        {/* URL Base con botón de copiar */}
-        <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
-          <code className="text-emerald-300 font-mono text-sm sm:text-base break-all">
-            https://libros-api-typescript.onrender.com
-          </code>
-          <button
-            onClick={() =>
-              navigator.clipboard.writeText(
-                "https://libros-api-typescript.onrender.com",
-              )
-            }
-            className="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-2 rounded-lg font-medium transition"
+          <h1 className="text-[34px] md:text-[52px] font-semibold tracking-tight leading-[1.05] mb-5">
+            Libros API
+          </h1>
+
+          <p className="text-lg text-ink-soft italic max-w-[46ch] mb-7">
+            Una API ligera y pública para gestionar un catálogo de libros —
+            construida para ser leída como código de producción, no como un
+            ejercicio de curso.
+          </p>
+
+          <div className="bg-paper-deep border border-ink/15 rounded p-4 flex items-center justify-between gap-3 flex-wrap">
+            <code className="font-mono text-[13px] text-navy break-all">
+              {API_BASE}
+            </code>
+            <button
+              onClick={copyUrl}
+              className="font-mono text-xs border border-ink text-ink px-3 py-[7px] rounded whitespace-nowrap transition-colors hover:bg-ink hover:text-paper"
+            >
+              {copied ? "Copiado ✓" : "Copiar URL"}
+            </button>
+          </div>
+
+          <div className="flex gap-3.5 mt-6 flex-wrap">
+            <a
+              href="https://github.com/Sebastian09-cell/libros-api-typescript"
+              target="_blank"
+              className="font-mono text-[13px] inline-flex items-center gap-2 border border-ink bg-ink text-paper px-[18px] py-[11px] rounded transition-colors hover:bg-ink hover:text-paper"
+            >
+              Ver en GitHub
+            </a>
+            <a
+              href={API_BASE}
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-[13px] inline-flex items-center gap-2 border border-ink text-ink px-[18px] py-[11px] rounded transition-colors hover:bg-ink hover:text-paper"
+            >
+              Backend en Render ↗
+            </a>
+          </div>
+        </header>
+
+        {/* Endpoints */}
+        <section className="py-12 border-b border-ink/15">
+          <div className="font-mono text-xs text-ink-soft mb-6">
+            Índice de endpoints
+          </div>
+          <ul>
+            {ENDPOINTS.map((e) => (
+              <li
+                key={e.method + e.path}
+                className="flex items-baseline gap-3.5 py-4 border-b border-dotted border-ink/15 last:border-none flex-wrap"
+              >
+                <span
+                  className={`font-mono text-xs font-semibold px-2 py-[3px] rounded min-w-[52px] text-center ${e.badgeClass}`}
+                >
+                  {e.method}
+                </span>
+                <span className="font-mono text-[15px] whitespace-nowrap">
+                  {e.path}
+                </span>
+                <span className="text-ink-soft text-[15px] flex-1">
+                  {e.desc}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Playground */}
+        <section className="py-12 border-b border-ink/15">
+          <div className="font-mono text-xs text-ink-soft mb-6">
+            Playground en vivo
+          </div>
+
+          <div className="bg-code-bg rounded-md overflow-hidden mt-2">
+            <div className="flex items-center justify-between px-[18px] py-3 border-b border-code-text/10">
+              <span className="font-mono text-xs text-code-text/55">
+                GET /libros
+              </span>
+              <button
+                onClick={fetchLibros}
+                disabled={loading}
+                className="font-mono text-xs bg-forest text-paper px-4 py-2 rounded disabled:opacity-60"
+              >
+                {loading ? "Consultando…" : "Ejecutar"}
+              </button>
+            </div>
+
+            <pre className="px-[18px] py-5 font-mono text-[13px] text-code-text min-h-[90px] whitespace-pre-wrap">
+              {data
+                ? JSON.stringify(data, null, 2)
+                : "// respuesta real de la API desplegada en Render"}
+              {!loading && (
+                <span className="inline-block w-[7px] h-3.5 bg-brass-soft align-text-bottom animate-pulse" />
+              )}
+            </pre>
+          </div>
+        </section>
+
+        {/* Stack */}
+        <section className="py-12">
+          <div className="font-mono text-xs text-ink-soft mb-6">Stack</div>
+          <div className="flex gap-2.5 flex-wrap">
+            {["Node.js", "Express", "TypeScript", "Render"].map((t) => (
+              <span
+                key={t}
+                className="font-mono text-xs border border-ink/15 px-3 py-[7px] rounded text-ink-soft"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        <footer className="pt-10 text-sm text-ink-soft flex justify-between flex-wrap gap-3">
+          <span>Construida por Sebastián Torres Delgado</span>
+          <a
+            href="https://portafolio-pi-nine-20.vercel.app/"
+            className="text-navy"
           >
-            Copiar URL
-          </button>
-        </div>
-      </header>
-
-      {/* Documentación de Endpoints */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-4 text-slate-200">
-          Endpoints disponibles
-        </h2>
-        <div className="space-y-3">
-          <div className="bg-slate-800/80 border border-slate-700 p-4 rounded-xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-md">
-                GET
-              </span>
-              <code className="text-slate-200 font-mono text-sm">/libros</code>
-            </div>
-            <span className="text-slate-400 text-sm hidden sm:inline">
-              Obtener catálogo completo
-            </span>
-          </div>
-
-          <div className="bg-slate-800/80 border border-slate-700 p-4 rounded-xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="bg-blue-500/20 text-blue-400 text-xs font-bold px-2.5 py-1 rounded-md">
-                POST
-              </span>
-              <code className="text-slate-200 font-mono text-sm">/libros</code>
-            </div>
-            <span className="text-slate-400 text-sm hidden sm:inline">
-              Crear un nuevo libro
-            </span>
-          </div>
-
-          <div className="bg-slate-800/80 border border-slate-700 p-4 rounded-xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="bg-red-500/20 text-red-400 text-xs font-bold px-2.5 py-1 rounded-md">
-                DELETE
-              </span>
-              <code className="text-slate-200 font-mono text-sm">
-                /libros/:id
-              </code>
-            </div>
-            <span className="text-slate-400 text-sm hidden sm:inline">
-              Eliminar un libro por ID
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* Probador interactivo (Playground) */}
-      <section className="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-          <div>
-            <h2 className="text-xl font-bold text-slate-100">
-              Playground en Vivo
-            </h2>
-            <p className="text-xs text-slate-400">
-              Prueba la respuesta real de la API desplegada en Render.
-            </p>
-          </div>
-          <button
-            onClick={fetchLibros}
-            disabled={loading}
-            className="bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold text-sm px-4 py-2.5 rounded-xl transition shadow-md"
-          >
-            {loading ? "Consultando..." : "Ejecutar GET /libros"}
-          </button>
-        </div>
-
-        <pre className="bg-slate-950 border border-slate-800 p-4 rounded-xl text-emerald-400 font-mono text-xs sm:text-sm overflow-x-auto min-h-[160px]">
-          {data
-            ? JSON.stringify(data, null, 2)
-            : '// Haz clic en "Ejecutar GET /libros" para realizar la petición en tiempo real...'}
-        </pre>
-      </section>
-    </main>
+            Volver al portafolio
+          </a>
+        </footer>
+      </div>
+    </div>
   );
 }
